@@ -46,6 +46,12 @@ namespace WebApi.Controllers
             return NotFound();
         }
 
+        //[HttpGet("{id}", Name = "GetCommandById")]
+        //public string GetCommandById(int id)
+        //{           
+        //    return "Hi This is testing";
+        //}
+
 
         //POST  api/commands
         [HttpPost]
