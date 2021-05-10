@@ -5,6 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.KeyVault;
+using WebApi.Data;
+using WebApi.Extensions;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -14,12 +17,34 @@ namespace WebApi.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
-        // GET: api/<ValuesController>
+        //private readonly ISecrets _secrets;
+        //public ValuesController(ISecrets secrets)
+        //{
+        //    _secrets = secrets;
+        //}
+        //// GET: api/<ValuesController>
+        //[HttpGet]
+        //public IEnumerable<string> Get()
+        //{
+        //    return new string[] { _secrets.ADApplicationId, _secrets.ADSecretKey, _secrets.Value1Endpoint, _secrets.Value2Endpoint };
+        //}
+
+        string secret1;
+        string secret2;
+        
+        public ValuesController(ISecrets secrets)
+        {
+            var keyvault = secrets.GetKeyVault();
+            secret1 = KeyVaultClientExtensions.GetSecretAsync(keyvault, secrets.Value1Endpoint).Result.Value;
+            secret2 = KeyVaultClientExtensions.GetSecretAsync(keyvault, secrets.Value2Endpoint).Result.Value;
+        }
+         
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            return new string[] { "value1", "value2" };
+            return new string[] { secret1, secret2 };
         }
+
 
         // GET api/<ValuesController>/5
         [HttpGet("{id}")]

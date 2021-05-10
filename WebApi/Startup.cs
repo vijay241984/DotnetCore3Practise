@@ -17,12 +17,16 @@ namespace WebApi
 {
     public class Startup
     {
+       
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        //Add set; property for User Secrets in ASP.net core 3.0
+        public IConfiguration Configuration { get; set; }
+
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -38,15 +42,37 @@ namespace WebApi
             //services.AddScoped<ICommanderRepo, MockCommanderRepo>(); 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddScoped<ICommanderRepo, SqlCommanderRepo>();
+
+            //------------User Secrets in ASP.net core 3.0
+
+            var adSecretKey = Configuration["ADSecretKey"];
+            var adApplicationId = Configuration["ADApplicationId"];
+            var value1Endpoint = Configuration["Value1Endpoint"];
+            var value2Endpoint = Configuration["Value2Endpoint"];
+
+            services.AddTransient<ISecrets>( _ => new Secrets(adSecretKey, adApplicationId, value1Endpoint, value2Endpoint) );
+
+            /////--------------------/////////////////////////////////
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            //User Secrets in ASP.net core 3.0
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
+                
             if (env.IsDevelopment())
             {
+                builder.AddUserSecrets<Startup>();
+                
                 app.UseDeveloperExceptionPage();
             }
+            Configuration = builder.Build();
+            //---------------------------------------------//
 
             app.UseRouting();
 
